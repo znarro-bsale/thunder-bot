@@ -1,0 +1,10 @@
+[project]
+name = "thunder-bot"
+version = "0.1.0"
+description = "Thunder team slack bot"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "python-dotenv>=1.1.1",
+    "slack-bolt>=1.23.0",
+]
