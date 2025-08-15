@@ -33,6 +33,7 @@ def handle_message(body, event, say, client, logger):
         )
     )
 
-def handle_app_mention(body, say):
-    user = body["event"]["user"]
-    say(f"Pong <@{user}> 🏓")
+# TODO: quizá la sola mención puede enviar lista de comandos en ephemeral
+# def handle_app_mention(body, say):
+#     user = body["event"]["user"]
+#     say(f"Pong <@{user}> 🏓")

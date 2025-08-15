@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS team_members (
   name             TEXT    NOT NULL,                                        -- Nombre del miembro
   cell             TEXT,                                                    -- Célula a la que pertenece
   slack_user_id    TEXT    NOT NULL UNIQUE,                                 -- ID de Slack
+  country          TEXT,                                                    -- País de residencia
   active           INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0,1)),      -- Activo o no en rotación
   order_index      INTEGER NOT NULL UNIQUE,                                 -- Orden en rotación
   is_current       INTEGER NOT NULL DEFAULT 0 CHECK (is_current IN (0,1)),  -- Turno actual

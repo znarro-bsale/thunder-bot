@@ -1,18 +1,5 @@
-import os
-import sqlite3
-from contextlib import contextmanager
 from datetime import datetime
-from config import DB_PATH
-
-@contextmanager
-def db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    try:
-        yield conn
-        conn.commit()
-    finally:
-        conn.close()
+from .database.factory import get_db
 
 def init_db():
     ddl = """
@@ -31,47 +18,60 @@ def init_db():
     CREATE INDEX IF NOT EXISTS idx_team_members_active ON team_members(active);
     CREATE INDEX IF NOT EXISTS idx_team_members_current ON team_members(is_current);
     """
-    with db() as conn:
-        conn.executescript(ddl)
+    db_adapter = get_db()
+    db_adapter.execute_script(ddl)
+
+def get_members():
+    db_adapter = get_db()
+    return db_adapter.fetch_all(
+        "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index ASC"
+    )
 
 def get_current():
-    with db() as conn:
-        return conn.execute(
-            "SELECT * FROM team_members WHERE is_current = 1 LIMIT 1"
-        ).fetchone()
+    db_adapter = get_db()
+    current = db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE is_current = 1 LIMIT 1"
+    )
+    if current:
+        return current
+    return db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index ASC LIMIT 1"
+    )
 
 def get_next_after(order_index: int):
-    with db() as conn:
-        nxt = conn.execute(
-            "SELECT * FROM team_members WHERE active = 1 AND order_index > ? ORDER BY order_index ASC LIMIT 1",
-            (order_index,),
-        ).fetchone()
-        if nxt:
-            return nxt
-        return conn.execute(
-            "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index ASC LIMIT 1"
-        ).fetchone()
+    db_adapter = get_db()
+    nxt = db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE active = 1 AND order_index > ? ORDER BY order_index ASC LIMIT 1",
+        (order_index,),
+    )
+    if nxt:
+        return nxt
+    return db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index ASC LIMIT 1"
+    )
 
-def advance_rotation_and_mark_assigned():
-    """Pasa el turno al siguiente activo, actualiza is_current, assigned_count y last_assigned_at."""
+def advance_turn():
+    """Pasa el turno al siguiente activo"""
     curr = get_current()
     if not curr:
-        nxt = get_next_after(-10**9)  # Empezar desde el primero activo
-    else:
-        nxt = get_next_after(curr["order_index"])
+        return None # No hay miembros activos
+
+    nxt = get_next_after(curr["order_index"])
     if not nxt:
-        return None
+        return None # No hay miembros activos
 
     now = datetime.utcnow().isoformat()
-    with db() as conn:
-        # Quitar el current previo
-        conn.execute("UPDATE team_members SET is_current = 0 WHERE is_current = 1")
-        # Marcar next como current y actualizar métricas
-        conn.execute("""
-            UPDATE team_members
-            SET is_current = 1,
-                assigned_count = assigned_count + 1,
-                last_assigned_at = ?
-            WHERE id = ?
-        """, (now, nxt["id"]))
+
+    db_adapter = get_db()
+    db_adapter.execute("UPDATE team_members SET is_current = 0 WHERE is_current = 1")
+
+    # Marcar next como current y actualizar métricas
+    db_adapter.execute("""
+        UPDATE team_members
+        SET is_current = 1,
+            assigned_count = assigned_count + 1,
+            last_assigned_at = ?
+        WHERE id = ?
+    """, (now, nxt["id"]))
+
     return nxt
