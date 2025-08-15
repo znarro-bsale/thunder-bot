@@ -50,28 +50,72 @@ def get_next_after(order_index: int):
         "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index ASC LIMIT 1"
     )
 
-def advance_turn():
+def get_previous_before(order_index: int):
+    db_adapter = get_db()
+    prev = db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE active = 1 AND order_index < ? ORDER BY order_index DESC LIMIT 1",
+        (order_index,),
+    )
+    if prev:
+        return prev
+    return db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index DESC LIMIT 1"
+    )
+
+
+def next_turn():
     """Pasa el turno al siguiente activo"""
     curr = get_current()
     if not curr:
         return None # No hay miembros activos
 
-    nxt = get_next_after(curr["order_index"])
-    if not nxt:
+    next = get_next_after(curr["order_index"])
+    if not next:
         return None # No hay miembros activos
 
     now = datetime.utcnow().isoformat()
 
     db_adapter = get_db()
-    db_adapter.execute("UPDATE team_members SET is_current = 0 WHERE is_current = 1")
-
     # Marcar next como current y actualizar métricas
+    db_adapter.execute("""
+        UPDATE team_members
+        SET is_current = 0,
+            assigned_count = IIF(assigned_count - 1 > 0, assigned_count - 1, 0)
+        WHERE is_current = 1
+    """)
     db_adapter.execute("""
         UPDATE team_members
         SET is_current = 1,
             assigned_count = assigned_count + 1,
-            last_assigned_at = ?
-        WHERE id = ?
-    """, (now, nxt["id"]))
+            last_assigned_at = ? WHERE id = ?
+    """, (now, next["id"]))
 
-    return nxt
+    return next
+
+def previous_turn():
+    """Pasa el turno al anterior activo"""
+    curr = get_current()
+    if not curr:
+        return None # No hay miembros activos
+
+    prev = get_previous_before(curr["order_index"])
+    if not prev:
+        return None # No hay miembros activos
+
+    now = datetime.utcnow().isoformat()
+
+    db_adapter = get_db()
+    # Marcar prev como current y actualizar métricas
+    db_adapter.execute("""
+        UPDATE team_members
+        SET is_current = 0, assigned_count = IIF(assigned_count - 1 > 0, assigned_count - 1, 0)
+        WHERE is_current = 1
+    """)
+    db_adapter.execute("""
+        UPDATE team_members
+        SET is_current = 1,
+            assigned_count = assigned_count + 1,
+            last_assigned_at = ? WHERE id = ?
+    """, (now, prev["id"]))
+
+    return prev

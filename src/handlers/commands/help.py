@@ -2,6 +2,7 @@ from slack_bolt import Ack, Respond
 
 
 def handle_help_command(ack: Ack, respond: Respond):
+    """Ayuda para los comandos disponibles"""
     ack()
 
     HELP = (
