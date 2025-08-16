@@ -1,9 +1,13 @@
 from slack_bolt import Ack, Respond
 from ...db import get_members
+from ...utils.channel_validator import validate_channel
 
 
-def handle_shift_status_command(ack: Ack, respond: Respond):
+def handle_shift_status(ack: Ack, respond: Respond, body: dict):
     """Muestra el estado de los turnos"""
+    if not validate_channel(ack, body):
+        return
+
     ack()
 
     members = get_members()

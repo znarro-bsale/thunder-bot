@@ -1,6 +1,20 @@
-from slack_bolt import Ack, Respond
+from slack_bolt import Ack, Say
+from ...db import previous_turn
+from ...utils.channel_validator import validate_channel
 
-def handle_shift_undo_command(ack: Ack, respond: Respond):
+
+def handle_shift_undo(ack: Ack, say: Say, body: dict):
+    """Pasa el turno al miembro anterior activo"""
+    if not validate_channel(ack, body):
+        return
+
     ack()
-    respond("En desarrollo...")
-    pass
+
+    user_id = body["user_id"]
+
+    prev_member = previous_turn()
+
+    if prev_member:
+        say(f"<@{user_id}>, se pasó el turno a _*{prev_member['name']}*_")
+    else:
+        say(f"<@{user_id}>, no se pudo pasar el turno. No hay miembros activos")

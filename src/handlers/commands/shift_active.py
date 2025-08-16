@@ -1,9 +1,13 @@
 from slack_bolt import Ack, Say
 from ...db import get_member_by_slack_id, next_turn, set_member_state
+from ...utils.channel_validator import validate_channel
 
 
-def handle_shift_active_command(ack: Ack, say: Say, body: dict):
+def handle_shift_active(ack: Ack, say: Say, body: dict):
     """Activa o desactiva un miembro (no entra en la rotación)"""
+    if not validate_channel(ack, body):
+        return
+
     ack()
 
     text = body.get('text', '').strip()

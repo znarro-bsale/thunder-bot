@@ -1,39 +1,52 @@
-from ...config import WATCH_USER_ID, SOURCE_CHANNEL_ID, DEST_CHANNEL_ID
+from ...config import TEAM_ID, SOURCE_CHANNEL_IDS, DEST_CHANNEL_IDS
+from ...db import get_current, next_turn
 
 _seen_event_ids = set()
 
-def handle_message(body, event, say, client, logger):
+
+def handle_message(body, event, client):
     event_id = body.get("event_id")
     if event_id in _seen_event_ids:
         return
     _seen_event_ids.add(event_id)
 
+    print(event)
     channel = event.get("channel")
-    if channel != SOURCE_CHANNEL_ID:
+    if channel not in SOURCE_CHANNEL_IDS:
         return
 
     if event.get("subtype") or event.get("bot_id"):
         return
 
     text = event.get("text", "") or ""
-    mention_token = f"<@{WATCH_USER_ID}>"
+    mention_token = f"<!subteam^{TEAM_ID}>"
     if mention_token not in text:
         return
 
-    user_who_mentioned = event.get("user")
     permalink = client.chat_getPermalink(channel=channel, message_ts=event.get("ts")).get("permalink")
 
-    client.chat_postMessage(
-        channel=DEST_CHANNEL_ID,
-        text=(
-            f"🔔 Hey <@{WATCH_USER_ID}>, te mencionaron en <#{SOURCE_CHANNEL_ID}>.\n"
-            f"Quien: <@{user_who_mentioned}>\n"
-            f"Mensaje: {text}\n"
-            f"Link: {permalink}"
-        )
-    )
+    support_member = get_current()
 
-# TODO: quizá la sola mención puede enviar lista de comandos en ephemeral
-# def handle_app_mention(body, say):
-#     user = body["event"]["user"]
-#     say(f"Pong <@{user}> 🏓")
+    if not support_member:
+        support_member = next_turn()
+
+    if not support_member:
+        for dest_chan in DEST_CHANNEL_IDS:
+            client.chat_postMessage(
+                channel=dest_chan,
+                text=(
+                    f"🔔 Hey <!subteam^{TEAM_ID}>, nos mencionaronen <#{channel}> y no hay turno asignado\n"
+                    f"Link: {permalink}"
+                )
+            )
+        return
+
+    for dest_chan in DEST_CHANNEL_IDS:
+        client.chat_postMessage(
+            channel=dest_chan,
+            text=(
+                f"🔔 Hey <@{support_member['slack_user_id']}>, mencionaron a <!subteam^{TEAM_ID}> en <#{channel}>\n"
+                f"Link: {permalink}"
+            )
+        )
+    next_turn()

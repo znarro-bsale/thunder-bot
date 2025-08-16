@@ -4,12 +4,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def parse_channel_list(channel_str: str) -> list[str]:
+    """Parsea IDs de canales si hay más de uno"""
+    if not channel_str:
+        return []
+    return [ch.strip() for ch in channel_str.split(',') if ch.strip()]
+
 # Slack Configuration
 BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-WATCH_USER_ID = os.getenv("WATCH_USER_ID")
-SOURCE_CHANNEL_ID = os.getenv("SOURCE_CHANNEL_ID")
-DEST_CHANNEL_ID = os.getenv("DEST_CHANNEL_ID")
+TEAM_ID = os.getenv("TEAM_ID")
+SOURCE_CHANNEL_IDS = parse_channel_list(os.getenv("SOURCE_CHANNEL_IDS", ""))
+DEST_CHANNEL_IDS = parse_channel_list(os.getenv("DEST_CHANNEL_IDS", ""))
+ALLOWED_COMMAND_CHANNEL = os.getenv("ALLOWED_COMMAND_CHANNEL", "")
 
 # Database Configuration
 class DatabaseType(Enum):
