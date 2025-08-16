@@ -5,6 +5,8 @@ from .handlers.commands.shift_status import handle_shift_status_command
 from .handlers.commands.shift_next import handle_shift_next_command
 from .handlers.commands.shift_prev import handle_shift_prev_command
 from .handlers.commands.shift_active import handle_shift_active_command
+from .handlers.commands.shift_country import handle_shift_country_command
+from .handlers.commands.shift_undo import handle_shift_undo_command
 from .handlers.commands.help import handle_help_command
 
 
@@ -19,6 +21,8 @@ def create_app():
     app.command("/shift-next")(handle_shift_next_command)
     app.command("/shift-prev")(handle_shift_prev_command)
     app.command("/shift-active")(handle_shift_active_command)
+    app.command("/shift-country")(handle_shift_country_command)
+    app.command("/shift-undo")(handle_shift_undo_command)
     app.command("/help")(handle_help_command)
 
     return app
