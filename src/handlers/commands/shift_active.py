@@ -12,18 +12,18 @@ def handle_shift_active(ack: Ack, say: Say, body: dict):
 
     text = body.get('text', '').strip()
     if not text:
-        say("Formato incorrecto. Uso: `/shift-active @usuario on|off`")
+        say("⚠️ Formato incorrecto. Uso: `/shift-active @usuario on|off`")
         return
 
     parts = text.split()
     if len(parts) != 2:
-        say("Formato incorrecto. Uso: `/shift-active @usuario on|off`")
+        say("⚠️ Formato incorrecto. Uso: `/shift-active @usuario on|off`")
         return
 
     member, state = parts
 
     if not member.startswith('<@') or not member.endswith('>'):
-        say("Debes mencionar un usuario válido. Ejemplo: `@usuario`")
+        say("⚠️ Debes mencionar un usuario válido. Ejemplo: `@usuario`")
         return
 
     try:
@@ -33,14 +33,14 @@ def handle_shift_active(ack: Ack, say: Say, body: dict):
 
         member = get_member_by_slack_id(slack_user_id)
         if not member:
-            say("Usuario no encontrado")
+            say("⚠️ Usuario no encontrado")
             return
     except (IndexError, ValueError):
-        say("Formato de usuario inválido")
+        say("⚠️ Formato de usuario inválido")
         return
 
     if state.lower() not in ['on', 'off']:
-        say("Estado inválido. Usa `on` para activar o `off` para desactivar")
+        say("⚠️ Estado inválido. Usa `on` para activar o `off` para desactivar")
         return
 
     user_id = body['user_id']
