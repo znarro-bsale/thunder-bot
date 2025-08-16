@@ -52,6 +52,6 @@ def handle_shift_active(ack: Ack, say: Say, body: dict):
     result = set_member_state(member['id'], new_state)
     if result:
         state_text = "activo" if new_state == 1 else "inactivo"
-        say(f"<@{user_id}>, se cambió el estado de <@{slack_user_id}> a {state_text}")
+        say(f"✅ <@{user_id}>, se cambió el estado de <@{slack_user_id}> a {state_text}")
     else:
-        say(f"<@{user_id}>, no se pudo cambiar el estado de <@{slack_user_id}>")
+        say(f"⚠️ <@{user_id}>, no se pudo cambiar el estado de <@{slack_user_id}>")

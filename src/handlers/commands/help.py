@@ -10,7 +10,7 @@ def handle_help(ack: Ack, respond: Respond, body: dict):
     ack()
 
     HELP = (
-        "*Comandos disponibles:*\n"
+        "💡 *Comandos disponibles:*\n"
         "`/shift-status` — Ver turnos (actual destacado)\n"
         "`/shift-pass` — Pasar turno al siguiente\n"
         "`/shift-undo` — Revierte última asignación\n"

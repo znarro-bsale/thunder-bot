@@ -15,6 +15,6 @@ def handle_shift_pass(ack: Ack, say: Say, body: dict):
     next_member = next_turn()
 
     if next_member:
-        say(f"<@{user_id}>, se pasó el turno a _*{next_member['name']}*_")
+        say(f"✅ <@{user_id}>, se pasó el turno a _*{next_member['name']}*_")
     else:
-        say(f"<@{user_id}>, no se pudo pasar el turno. No hay miembros activos")
+        say(f"⚠️ <@{user_id}>, no se pudo pasar el turno. No hay miembros activos")

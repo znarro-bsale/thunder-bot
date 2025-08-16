@@ -15,6 +15,6 @@ def handle_shift_undo(ack: Ack, say: Say, body: dict):
     prev_member = previous_turn()
 
     if prev_member:
-        say(f"<@{user_id}>, se pasó el turno a _*{prev_member['name']}*_")
+        say(f"✅ <@{user_id}>, se pasó el turno a _*{prev_member['name']}*_")
     else:
-        say(f"<@{user_id}>, no se pudo pasar el turno. No hay miembros activos")
+        say(f"⚠️ <@{user_id}>, no se pudo pasar el turno. No hay miembros activos")

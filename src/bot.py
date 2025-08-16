@@ -7,6 +7,7 @@ from .handlers.commands.shift_active import handle_shift_active
 from .handlers.commands.shift_country import handle_shift_country
 from .handlers.commands.shift_undo import handle_shift_undo
 from .handlers.commands.help import handle_help
+from .handlers.actions.button_actions import handle_undo_shift_button
 
 
 def create_app():
@@ -22,5 +23,8 @@ def create_app():
     app.command("/shift-active")(handle_shift_active)
     app.command("/shift-country")(handle_shift_country)
     app.command("/help")(handle_help)
+    
+    # Acciones de botones
+    app.action("undo_shift")(handle_undo_shift_button)
 
     return app

@@ -35,9 +35,36 @@ def handle_message(body, event, client):
             client.chat_postMessage(
                 channel=dest_chan,
                 text=(
-                    f"🔔 Hey <!subteam^{TEAM_ID}>, nos mencionaronen <#{channel}> y no hay turno asignado\n"
+                    f"🔔 Hey <!subteam^{TEAM_ID}>, nos mencionaron en <#{channel}> y no hay turno asignado\n"
                     f"Link: {permalink}"
-                )
+                ),
+                blocks=[
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": (
+                                f"🔔 Hey <!subteam^{TEAM_ID}>, nos mencionaron en <#{channel}> y no hay turno asignado\n"
+                                f"Link: {permalink}"
+                            )
+                        }
+                    },
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Deshacer (no era SOS)"
+                                },
+                                "style": "danger",
+                                "action_id": "undo_shift",
+                                "value": "undo_shift"
+                            }
+                        ]
+                    }
+                ]
             )
         return
 
@@ -47,6 +74,33 @@ def handle_message(body, event, client):
             text=(
                 f"🔔 Hey <@{support_member['slack_user_id']}>, mencionaron al equipo en <#{channel}>\n"
                 f"Link: {permalink}"
-            )
+            ),
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": (
+                            f"🔔 Hey <@{support_member['slack_user_id']}>, mencionaron al equipo en <#{channel}>\n"
+                            f"Link: {permalink}"
+                        )
+                    }
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Deshacer (no era SOS)"
+                            },
+                            "style": "danger",
+                            "action_id": "undo_shift",
+                            "value": "undo_shift"
+                        }
+                    ]
+                }
+            ]
         )
     next_turn()

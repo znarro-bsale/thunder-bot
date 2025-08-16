@@ -12,7 +12,7 @@ def handle_shift_status(ack: Ack, respond: Respond, body: dict):
 
     members = get_members()
     if members:
-        message = "*Turnos:*\n"
+        message = "🔄 *Turnos:*\n"
         for member in members:
             message += "_*" if member['is_current'] else ""
             message += f"{member['id']}. {member['name']}"
