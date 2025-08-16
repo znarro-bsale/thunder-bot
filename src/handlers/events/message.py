@@ -45,7 +45,7 @@ def handle_message(body, event, client):
         client.chat_postMessage(
             channel=dest_chan,
             text=(
-                f"🔔 Hey <@{support_member['slack_user_id']}>, mencionaron a <!subteam^{TEAM_ID}> en <#{channel}>\n"
+                f"🔔 Hey <@{support_member['slack_user_id']}>, mencionaron al equipo en <#{channel}>\n"
                 f"Link: {permalink}"
             )
         )
