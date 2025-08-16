@@ -27,6 +27,13 @@ def get_members():
         "SELECT * FROM team_members WHERE active = 1 ORDER BY order_index ASC"
     )
 
+def get_member_by_slack_id(slack_user_id):
+    db_adapter = get_db()
+    return db_adapter.fetch_one(
+        "SELECT * FROM team_members WHERE slack_user_id = ? LIMIT 1",
+        (slack_user_id,)
+    )
+
 def get_current():
     db_adapter = get_db()
     current = db_adapter.fetch_one(
@@ -119,3 +126,16 @@ def previous_turn():
     """, (now, prev["id"]))
 
     return prev
+
+def set_member_state(id, state):
+    db_adapter = get_db()
+    try:
+        current = get_current()
+        db_adapter.execute("""
+            UPDATE team_members
+            SET active = ?
+            WHERE id = ?
+        """, (state, id))
+        return True
+    except Exception:
+        return False
