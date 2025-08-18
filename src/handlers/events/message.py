@@ -14,14 +14,17 @@ def handle_message(body, event, client):
         print("Evento: ", event)
         channel = event.get("channel")
         if channel not in SOURCE_CHANNEL_IDS:
+            print("No es channel de origen")
             return
 
-        if event.get("subtype") or event.get("bot_id"):
+        if event.get("bot_id"):
+            print("Es un bot")
             return
 
         text = event.get("text", "") or ""
         mention_token = f"<!subteam^{TEAM_ID}>"
         if mention_token not in text:
+            print("No nos mencionaron")
             return
 
         permalink = client.chat_getPermalink(channel=channel, message_ts=event.get("ts")).get("permalink")
@@ -68,6 +71,8 @@ def handle_message(body, event, client):
                     ]
                 )
             return
+
+        print("SOS para: ", support_member['name'])
 
         for dest_chan in DEST_CHANNEL_IDS:
             client.chat_postMessage(
