@@ -38,7 +38,7 @@ def handle_message(body, event, client):
         if not support_member:
             # Notify Discord
             requests.post(DISCORD_WEBHOOK_URL, json={
-                "content": f"🔔 Hey, nos mencionaron en <#{channel}> y no hay turno asignado\n"
+                "content": f"🔔 Hey, nos mencionaron en canal de soporte\n"
                 f"Link: {permalink}"
             })
 
@@ -84,7 +84,7 @@ def handle_message(body, event, client):
 
         # Notify Discord
         requests.post(DISCORD_WEBHOOK_URL, json={
-            "content": f"🔔 Hey <@{support_member['discord_user_id']}>, mencionaron al equipo en <#{channel}>\n"
+            "content": f"🔔 Hey <@{support_member['discord_user_id']}>, nos mencionaron en canal de soporte\n"
             f"Link: {permalink}"
         })
 
