@@ -38,6 +38,8 @@ def handle_message(body, event, client):
         if not support_member:
             # Notify Discord
             requests.post(DISCORD_WEBHOOK_URL, json={
+                "username": "ThunderBot",
+                "avatar_url": "https://static.wikia.nocookie.net/the-scrappy/images/b/bc/Screenshot_Snarf.jpg",
                 "content": f"🔔 Hey, nos mencionaron en canal de soporte\n"
                 f"Link: {permalink}"
             })
@@ -84,8 +86,11 @@ def handle_message(body, event, client):
 
         # Notify Discord
         requests.post(DISCORD_WEBHOOK_URL, json={
+            "username": "ThunderBot",
+            "avatar_url": "https://static.wikia.nocookie.net/the-scrappy/images/b/bc/Screenshot_Snarf.jpg",
             "content": f"🔔 Hey <@{support_member['discord_user_id']}>, nos mencionaron en canal de soporte\n"
             f"Link: {permalink}"
+
         })
 
         # Notify Slack
