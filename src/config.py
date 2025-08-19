@@ -18,6 +18,9 @@ SOURCE_CHANNEL_IDS = parse_channel_list(os.getenv("SOURCE_CHANNEL_IDS", ""))
 DEST_CHANNEL_IDS = parse_channel_list(os.getenv("DEST_CHANNEL_IDS", ""))
 ALLOWED_COMMAND_CHANNEL = os.getenv("ALLOWED_COMMAND_CHANNEL", "")
 
+# Discord Configuration
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+
 # Database Configuration
 class DatabaseType(Enum):
     SQLITE = "sqlite"

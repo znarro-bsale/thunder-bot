@@ -1,4 +1,5 @@
-from ...config import TEAM_ID, SOURCE_CHANNEL_IDS, DEST_CHANNEL_IDS
+import requests
+from ...config import TEAM_ID, SOURCE_CHANNEL_IDS, DEST_CHANNEL_IDS, DISCORD_WEBHOOK_URL
 from ...db import get_current, next_turn
 
 _seen_event_ids = set()
@@ -35,6 +36,13 @@ def handle_message(body, event, client):
             support_member = next_turn()
 
         if not support_member:
+            # Notify Discord
+            requests.post(DISCORD_WEBHOOK_URL, json={
+                "content": f"🔔 Hey, nos mencionaron en <#{channel}> y no hay turno asignado\n"
+                f"Link: {permalink}"
+            })
+
+            # Notify Slack
             for dest_chan in DEST_CHANNEL_IDS:
                 client.chat_postMessage(
                     channel=dest_chan,
@@ -74,6 +82,13 @@ def handle_message(body, event, client):
 
         print("SOS para: ", support_member['name'])
 
+        # Notify Discord
+        requests.post(DISCORD_WEBHOOK_URL, json={
+            "content": f"🔔 Hey <@{support_member['discord_user_id']}>, mencionaron al equipo en <#{channel}>\n"
+            f"Link: {permalink}"
+        })
+
+        # Notify Slack
         for dest_chan in DEST_CHANNEL_IDS:
             client.chat_postMessage(
                 channel=dest_chan,
