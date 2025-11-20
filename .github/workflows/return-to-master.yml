@@ -1,0 +1,162 @@
+name: Return to Master
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Master PR number to test with'
+        required: true
+        type: number
+
+jobs:
+  return-to-master:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find beta PR and extract companies
+        id: find_companies
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const masterPrNumber = context.payload.pull_request?.number || parseInt(context.payload.inputs?.pr_number);
+
+            if (!masterPrNumber) {
+              return { company_ids: [], should_deploy: false };
+            }
+
+            console.log(`Analyzing Master PR #${masterPrNumber}`);
+
+            // Obtener descripción del PR master
+            const { data: masterPr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: masterPrNumber
+            });
+
+            const prBody = masterPr.body || '';
+            
+            // Buscar referencia al Beta PR
+            const prMatch = prBody.match(/Beta\s+PR:?\s*#(\d+)/i);
+            
+            if (!prMatch) {
+              console.log('No beta PR reference found');
+              return {
+                company_ids: [],
+                should_deploy: false,
+                master_pr_number: masterPrNumber,
+                error: 'No beta PR reference'
+              };
+            }
+            
+            const betaPrNumber = parseInt(prMatch[1]);
+            console.log(`Found beta PR: #${betaPrNumber}`);
+            
+            // Obtener comentarios del Beta PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: betaPrNumber
+            });
+            
+            // Buscar /to_beta en comentarios del beta PR
+            const betaComment = comments
+              .filter(c => c.body.includes('/to_beta'))
+              .reverse()[0];
+            
+            if (!betaComment) {
+              // Intentar buscar en la descripción del beta PR
+              const { data: betaPr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: betaPrNumber
+              });
+              
+              const betaPrBody = betaPr.body || '';
+              const bodyMatch = betaPrBody.match(/\/to_beta\s+([\d,\s]+)/i);
+              
+              if (bodyMatch) {
+                const companyIds = bodyMatch[1]
+                  .split(',')
+                  .map(id => id.trim())
+                  .filter(id => /^\d+$/.test(id));
+                
+                console.log(`Found in beta PR description: ${companyIds.join(', ')}`);
+                return {
+                  company_ids: companyIds,
+                  should_deploy: companyIds.length > 0,
+                  beta_pr_number: betaPrNumber,
+                  master_pr_number: masterPrNumber,
+                  source: 'beta_pr_description'
+                };
+              }
+              
+              console.log('No /to_beta found in beta PR');
+              return {
+                company_ids: [],
+                should_deploy: false,
+                beta_pr_number: betaPrNumber,
+                master_pr_number: masterPrNumber,
+                error: 'No /to_beta in beta PR'
+              };
+            }
+            
+            const match = betaComment.body.match(/\/to_beta\s+([\d,\s]+)/);
+            if (!match) {
+              return {
+                company_ids: [],
+                should_deploy: false,
+                beta_pr_number: betaPrNumber,
+                master_pr_number: masterPrNumber,
+                error: 'Invalid /to_beta format'
+              };
+            }
+            
+            const companyIds = match[1]
+              .split(',')
+              .map(id => id.trim())
+              .filter(id => /^\d+$/.test(id));
+            
+            console.log(`Found in beta PR comment: ${companyIds.join(', ')}`);
+            
+            return {
+              company_ids: companyIds,
+              should_deploy: companyIds.length > 0,
+              beta_pr_number: betaPrNumber,
+              master_pr_number: masterPrNumber,
+              source: 'beta_pr_comment'
+            };
+
+      - name: Return companies to master (simulation)
+        if: fromJSON(steps.find_companies.outputs.result).should_deploy
+        env:
+          COMPANY_IDS: ${{ join(fromJSON(steps.find_companies.outputs.result).company_ids, ',') }}
+          BETA_PR: ${{ fromJSON(steps.find_companies.outputs.result).beta_pr_number }}
+          MASTER_PR: ${{ fromJSON(steps.find_companies.outputs.result).master_pr_number }}
+        run: |
+          echo "=========================================="
+          echo "🔄 RETURNING TO MASTER"
+          echo "=========================================="
+          echo "Master PR: #$MASTER_PR"
+          echo "Beta PR: #$BETA_PR"
+          echo "Companies: $COMPANY_IDS"
+          echo "Source: ${{ fromJSON(steps.find_companies.outputs.result).source }}"
+          echo ""
+          echo "📡 Would call API: POST /return-to-master"
+          echo "📦 Payload: {\"company_ids\": [$COMPANY_IDS]}"
+          echo "=========================================="
+
+      - name: Show error if not found
+        if: |
+          !fromJSON(steps.find_companies.outputs.result).should_deploy
+        run: |
+          echo "=========================================="
+          echo "⚠️ NO COMPANIES TO RETURN"
+          echo "=========================================="
+          echo "Error: ${{ fromJSON(steps.find_companies.outputs.result).error }}"
+          echo "Master PR: #${{ fromJSON(steps.find_companies.outputs.result).master_pr_number }}"
+          echo "=========================================="

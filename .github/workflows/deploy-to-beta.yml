@@ -1,0 +1,110 @@
+name: Deploy to Beta
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - beta
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Beta PR number to test with'
+        required: true
+        type: number
+
+jobs:
+  deploy-to-beta:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find companies to deploy to beta
+        id: find_companies
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number || parseInt(context.payload.inputs?.pr_number);
+
+            if (!prNumber) {
+              return { company_ids: [], should_deploy: false };
+            }
+
+            console.log(`Analyzing Beta PR #${prNumber}`);
+
+            // Buscar en descripción del PR
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const prBody = pr.body || '';
+            
+            // Buscar /to_beta en descripción
+            const bodyMatch = prBody.match(/\/to_beta\s+([\d,\s]+)/i);
+            if (bodyMatch) {
+              const companyIds = bodyMatch[1]
+                .split(',')
+                .map(id => id.trim())
+                .filter(id => /^\d+$/.test(id));
+              
+              console.log(`Found in description: ${companyIds.join(', ')}`);
+              return {
+                company_ids: companyIds,
+                should_deploy: companyIds.length > 0,
+                pr_number: prNumber,
+                source: 'description'
+              };
+            }
+
+            // Buscar en comentarios
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            const betaComment = comments
+              .filter(c => c.body.includes('/to_beta'))
+              .reverse()[0];
+
+            if (betaComment) {
+              const commentMatch = betaComment.body.match(/\/to_beta\s+([\d,\s]+)/);
+              if (commentMatch) {
+                const companyIds = commentMatch[1]
+                  .split(',')
+                  .map(id => id.trim())
+                  .filter(id => /^\d+$/.test(id));
+                
+                console.log(`Found in comment: ${companyIds.join(', ')}`);
+                return {
+                  company_ids: companyIds,
+                  should_deploy: companyIds.length > 0,
+                  pr_number: prNumber,
+                  source: 'comment'
+                };
+              }
+            }
+
+            console.log('No /to_beta command found');
+            return {
+              company_ids: [],
+              should_deploy: false,
+              pr_number: prNumber
+            };
+
+      - name: Deploy companies to beta (simulation)
+        if: fromJSON(steps.find_companies.outputs.result).should_deploy
+        env:
+          COMPANY_IDS: ${{ join(fromJSON(steps.find_companies.outputs.result).company_ids, ',') }}
+        run: |
+          echo "=========================================="
+          echo "🚀 DEPLOYING TO BETA"
+          echo "=========================================="
+          echo "PR: #${{ fromJSON(steps.find_companies.outputs.result).pr_number }}"
+          echo "Companies: $COMPANY_IDS"
+          echo "Source: ${{ fromJSON(steps.find_companies.outputs.result).source }}"
+          echo ""
+          echo "📡 Would call API: POST /deploy-to-beta"
+          echo "📦 Payload: {\"company_ids\": [$COMPANY_IDS]}"
+          echo "=========================================="
