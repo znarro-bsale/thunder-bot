@@ -124,7 +124,7 @@ jobs:
             console.log(`Found in beta PR comment: ${companyIds.join(', ')}`);
             
             return {
-              company_ids: companyIds,
+              company_ids: companyIds.join(', '),
               should_deploy: companyIds.length > 0,
               beta_pr_number: betaPrNumber,
               master_pr_number: masterPrNumber,
@@ -153,7 +153,7 @@ jobs:
             -H "X-API-Key: ${{ secrets.INFINITOOLS_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d "{
-              \"company_ids\": [$COMPANY_IDS],
+              \"ids\": \"${{ github.event.inputs.company_ids }}\",
               \"git_user\": \"github-actions\",
               \"motive\": \"Return to master via GitHub Actions\"
             }"

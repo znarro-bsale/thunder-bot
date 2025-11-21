@@ -78,7 +78,7 @@ jobs:
                 
                 console.log(`Found in comment: ${companyIds.join(', ')}`);
                 return {
-                  company_ids: companyIds,
+                  company_ids: companyIds.join(', '),
                   should_deploy: companyIds.length > 0,
                   pr_number: prNumber,
                   source: 'comment'
@@ -88,7 +88,7 @@ jobs:
 
             console.log('No /to_beta command found');
             return {
-              company_ids: [],
+              company_ids: '',
               should_deploy: false,
               pr_number: prNumber
             };
@@ -107,7 +107,7 @@ jobs:
           echo "Companies: $COMPANY_IDS"
           echo "Source: ${{ fromJSON(steps.find_companies.outputs.result).source }}"
           echo ""
-          echo "📡 Would call API: POST/to_beta"
+          echo "📡 Would call API: POST /to_beta"
           echo "📦 Payload: {\"company_ids\": [$COMPANY_IDS]}"
           echo "=========================================="
           curl -X POST ${{ secrets.INFINITOOLS_API_URL }}/to_beta \
