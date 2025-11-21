@@ -9,4 +9,4 @@ Slack bot para el manejo de turnos de soporte dentro de ThunderTeam
 - `/shift-country PE|CL on|off` — Activar/pausar por país
 - `/help` — Muestra este mensaje
 
-Probando API
+Probando API de infinitools
