@@ -26,7 +26,7 @@ jobs:
             const prNumber = context.payload.pull_request?.number || parseInt(context.payload.inputs?.pr_number);
 
             if (!prNumber) {
-              return { company_ids: [], should_deploy: false };
+              return { company_ids: '', should_deploy: false };
             }
 
             console.log(`Analyzing Beta PR #${prNumber}`);
@@ -50,7 +50,7 @@ jobs:
               
               console.log(`Found in description: ${companyIds.join(', ')}`);
               return {
-                company_ids: companyIds,
+                company_ids: companyIds.join(', '),
                 should_deploy: companyIds.length > 0,
                 pr_number: prNumber,
                 source: 'description'
