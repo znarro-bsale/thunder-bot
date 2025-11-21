@@ -147,16 +147,16 @@ jobs:
           echo "Source: ${{ fromJSON(steps.find_companies.outputs.result).source }}"
           echo ""
           echo "📡 Would call API: POST /to_master"
-          echo "📦 Payload: {\"company_ids\": [$COMPANY_IDS]}"
+          echo "📦 Payload: {\"ids\": $COMPANY_IDS}"
           echo "=========================================="
           curl -X POST ${{ secrets.INFINITOOLS_API_URL }}/to_master \
             -H "X-API-Key: ${{ secrets.INFINITOOLS_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"ids\": \"${{ github.event.inputs.company_ids }}\",
+            -d '{
+              \"ids\": $COMPANY_IDS,
               \"git_user\": \"github-actions\",
               \"motive\": \"Return to master via GitHub Actions\"
-            }"
+            }'
           echo "=========================================="
 
       - name: Show error if not found
