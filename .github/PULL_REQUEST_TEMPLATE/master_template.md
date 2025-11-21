@@ -1,5 +1,3 @@
-## 🚀 Despliegue a Producción
-
 ### Descripción
 <!-- ¿Qué cambios se están desplegando a producción? -->
 
@@ -9,4 +7,4 @@ Beta PR: #
 <!-- Ejemplo: Beta PR: #123 -->
 
 ---
-**Nota:** Las empresas del PR de beta serán automáticamente devueltas a master cuando se mergee este PR.
+<!-- NOTA AUTOMÁTICA: Las empresas del PR de beta serán automáticamente devueltas a master cuando se mergee este PR. -->
