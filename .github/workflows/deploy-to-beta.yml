@@ -93,18 +93,29 @@ jobs:
               pr_number: prNumber
             };
 
-      - name: Deploy companies to beta (simulation)
+      - name: Move companies to beta
         if: fromJSON(steps.find_companies.outputs.result).should_deploy
         env:
           COMPANY_IDS: ${{ join(fromJSON(steps.find_companies.outputs.result).company_ids, ',') }}
+          PR_NUMBER: ${{ fromJSON(steps.find_companies.outputs.result).pr_number }}
+          SOURCE: ${{ fromJSON(steps.find_companies.outputs.result).source }}
         run: |
           echo "=========================================="
-          echo "🚀 DEPLOYING TO BETA"
+          echo "🚀 MOVING COMPANIES TO BETA"
           echo "=========================================="
           echo "PR: #${{ fromJSON(steps.find_companies.outputs.result).pr_number }}"
           echo "Companies: $COMPANY_IDS"
           echo "Source: ${{ fromJSON(steps.find_companies.outputs.result).source }}"
           echo ""
-          echo "📡 Would call API: POST /deploy-to-beta"
+          echo "📡 Would call API: POST/to_beta"
           echo "📦 Payload: {\"company_ids\": [$COMPANY_IDS]}"
+          echo "=========================================="
+          curl -X POST ${{ secrets.INFINITOOLS_API_URL }}/to_beta \
+            -H "X-API-Key: ${{ secrets.INFINITOOLS_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"ids\": \"${{ github.event.inputs.company_ids }}\",
+              \"git_user\": \"github-actions\",
+              \"motive\": \"Move to beta via GitHub Actions\"
+            }"
           echo "=========================================="
