@@ -4,7 +4,7 @@
 ### PR de Beta relacionado
 <!-- REQUERIDO: Enlaza el PR de beta donde se probó esto -->
 Beta PR: #
-<!-- Ejemplo: Beta PR: #123 -->
+<!-- Ejemplo: Beta PR: #1O -->
 
 ---
 <!-- NOTA AUTOMÁTICA: Las empresas del PR de beta serán automáticamente devueltas a master cuando se mergee este PR. -->

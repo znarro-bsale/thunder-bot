@@ -2,9 +2,9 @@
 <!-- ¿Qué cambios se están desplegando a beta? -->
 
 ### Empresas a migrar a Beta (opcional)
-<!-- Especifica los CPNs de las empresas que probarán este cambio -->
-<!-- Ejemplo: /to_beta 123,456,789 -->
+<!-- Especifica los CPNs separados por comas -->
 /to_beta 
+<!-- Ejemplo: /to_beta CPN1,CPN2,CPN3 -->
 
 ---
 <!-- NOTA AUTOMÁTICA: Estas empresas serán automáticamente desplegadas a beta cuando se mergee este PR. -->
