@@ -48,9 +48,9 @@ jobs:
                 .map(id => id.trim())
                 .filter(id => /^\d+$/.test(id));
               
-              console.log(`Found in description: ${companyIds.join(', ')}`);
+              console.log(`Found in description: ${companyIds.join(',')}`);
               return {
-                company_ids: companyIds.join(', '),
+                company_ids: companyIds.join(','),
                 should_deploy: companyIds.length > 0,
                 pr_number: prNumber,
                 source: 'description'
@@ -76,9 +76,9 @@ jobs:
                   .map(id => id.trim())
                   .filter(id => /^\d+$/.test(id));
                 
-                console.log(`Found in comment: ${companyIds.join(', ')}`);
+                console.log(`Found in comment: ${companyIds.join(',')}`);
                 return {
-                  company_ids: companyIds.join(', '),
+                  company_ids: companyIds.join(','),
                   should_deploy: companyIds.length > 0,
                   pr_number: prNumber,
                   source: 'comment'

@@ -26,7 +26,7 @@ jobs:
             const masterPrNumber = context.payload.pull_request?.number || parseInt(context.payload.inputs?.pr_number);
 
             if (!masterPrNumber) {
-              return { company_ids: [], should_deploy: false };
+              return { company_ids: '', should_deploy: false };
             }
 
             console.log(`Analyzing Master PR #${masterPrNumber}`);
@@ -46,7 +46,7 @@ jobs:
             if (!prMatch) {
               console.log('No beta PR reference found');
               return {
-                company_ids: [],
+                company_ids: '',
                 should_deploy: false,
                 master_pr_number: masterPrNumber,
                 error: 'No beta PR reference'
@@ -85,9 +85,9 @@ jobs:
                   .map(id => id.trim())
                   .filter(id => /^\d+$/.test(id));
                 
-                console.log(`Found in beta PR description: ${companyIds.join(', ')}`);
+                console.log(`Found in beta PR description: ${companyIds.join(',')}`);
                 return {
-                  company_ids: companyIds,
+                  company_ids: companyIds.join(','),
                   should_deploy: companyIds.length > 0,
                   beta_pr_number: betaPrNumber,
                   master_pr_number: masterPrNumber,
@@ -97,7 +97,7 @@ jobs:
               
               console.log('No /to_beta found in beta PR');
               return {
-                company_ids: [],
+                company_ids: '',
                 should_deploy: false,
                 beta_pr_number: betaPrNumber,
                 master_pr_number: masterPrNumber,
@@ -108,7 +108,7 @@ jobs:
             const match = betaComment.body.match(/\/to_beta\s+([\d,\s]+)/);
             if (!match) {
               return {
-                company_ids: [],
+                company_ids: '',
                 should_deploy: false,
                 beta_pr_number: betaPrNumber,
                 master_pr_number: masterPrNumber,
@@ -121,10 +121,10 @@ jobs:
               .map(id => id.trim())
               .filter(id => /^\d+$/.test(id));
             
-            console.log(`Found in beta PR comment: ${companyIds.join(', ')}`);
+            console.log(`Found in beta PR comment: ${companyIds.join(',')}`);
             
             return {
-              company_ids: companyIds.join(', '),
+              company_ids: companyIds.join(','),
               should_deploy: companyIds.length > 0,
               beta_pr_number: betaPrNumber,
               master_pr_number: masterPrNumber,
@@ -134,9 +134,11 @@ jobs:
       - name: Return companies to master
         if: fromJSON(steps.find_companies.outputs.result).should_deploy
         env:
-          COMPANY_IDS: ${{ join(fromJSON(steps.find_companies.outputs.result).company_ids, ',') }}
+          COMPANY_IDS: ${{ fromJSON(steps.find_companies.outputs.result).company_ids }}
           BETA_PR: ${{ fromJSON(steps.find_companies.outputs.result).beta_pr_number }}
           MASTER_PR: ${{ fromJSON(steps.find_companies.outputs.result).master_pr_number }}
+          API_URL: ${{ secrets.INFINITOOLS_API_URL }}
+          API_KEY: ${{ secrets.INFINITOOLS_API_KEY }}
         run: |
           echo "=========================================="
           echo "🔄 RETURNING TO MASTER"
@@ -146,26 +148,23 @@ jobs:
           echo "Companies: $COMPANY_IDS"
           echo "Source: ${{ fromJSON(steps.find_companies.outputs.result).source }}"
           echo ""
-          echo "📡 Would call API: POST /to_master"
-          echo "📦 Payload: {\"ids\": $COMPANY_IDS}"
-          echo "=========================================="
-          curl -X POST ${{ secrets.INFINITOOLS_API_URL }}/to_master \
-            -H "X-API-Key: ${{ secrets.INFINITOOLS_API_KEY }}" \
+    
+          RESPONSE=$(curl -X POST "$API_URL/to_master" \
+            -H "X-API-Key: $API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{
-              \"ids\": $COMPANY_IDS,
-              \"git_user\": \"github-actions\",
-              \"motive\": \"Return to master via GitHub Actions\"
-            }'
+            -d "{\"ids\": \"$COMPANY_IDS\", \"git_user\": \"github-actions\", \"motive\": \"Return to master via GitHub Actions\"}" \
+            -w "\nHTTP_CODE:%{http_code}" \
+            -s)
+    
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d':' -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE/d')
+    
+          echo "Response:"
+          echo "$BODY" | jq '.' || echo "$BODY"
+          echo "HTTP Status: $HTTP_CODE"
           echo "=========================================="
-
-      - name: Show error if not found
-        if: |
-          !fromJSON(steps.find_companies.outputs.result).should_deploy
-        run: |
-          echo "=========================================="
-          echo "⚠️ NO COMPANIES TO RETURN"
-          echo "=========================================="
-          echo "Error: ${{ fromJSON(steps.find_companies.outputs.result).error }}"
-          echo "Master PR: #${{ fromJSON(steps.find_companies.outputs.result).master_pr_number }}"
-          echo "=========================================="
+    
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Failed to return companies to master"
+            exit 1
+          fi
