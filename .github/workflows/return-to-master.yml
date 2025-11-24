@@ -152,7 +152,7 @@ jobs:
           RESPONSE=$(curl -X POST "$API_URL/to_master" \
             -H "X-API-Key: $API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"ids\": \"$COMPANY_IDS\", \"git_user\": ${{ github.actor }}, \"motive\": \"Return to master via GitHub Actions\"}" \
+            -d "{\"ids\": \"$COMPANY_IDS\", \"git_user\": \"${{ github.actor }}\", \"motive\": \"Return to master via GitHub Actions\"}" \
             -w "\nHTTP_CODE:%{http_code}" \
             -s)
     
