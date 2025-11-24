@@ -111,7 +111,7 @@ jobs:
           RESPONSE=$(curl -X POST "$API_URL/to_beta" \
             -H "X-API-Key: $API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"ids\": \"$COMPANY_IDS\", \"git_user\": \"github-actions\", \"motive\": \"Move to beta via GitHub Actions\"}" \
+            -d "{\"ids\": \"$COMPANY_IDS\", \"git_user\": ${{ github.actor }}, \"motive\": \"Move to beta via GitHub Actions\"}" \
             -w "\nHTTP_CODE:%{http_code}" \
             -s)
     
